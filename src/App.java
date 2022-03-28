@@ -8,7 +8,7 @@ public class App {
         for (int r = 0; r < 100; r++) {
             Chopstick[] chopsticks = new Chopstick[5];
             for (int i = 0; i < chopsticks.length; i++) {
-                chopsticks[i] = new Chopstick();
+                chopsticks[i] = new Chopstick(i);
             }
 
             System.out.println(Arrays.toString(chopsticks));
@@ -30,9 +30,11 @@ public class App {
 
 class Chopstick {
     private Lock lock;
+    private int number;
 
-    public Chopstick() {
+    public Chopstick(int number) {
         lock = new ReentrantLock();
+        this.number=number;
     }
 
     public void pickUp() {
@@ -42,15 +44,24 @@ class Chopstick {
     public void putDown() {
         lock.unlock();
     }
+
+    public int getNumber(){
+        return number;
+    }
 }
 
 class Philosopher extends Thread {
     private int bites = 10;
-    private Chopstick left, right;
+    private Chopstick lower, higher;
 
     public Philosopher(Chopstick left, Chopstick right) {
-        this.left = left;
-        this.right = right;
+        if(left.getNumber()<right.getNumber()) {
+            this.lower = left;
+            this.higher = right;
+        }else{
+            this.lower = right;
+            this.higher = left;
+        }
     }
 
     public void eat() {
@@ -60,8 +71,8 @@ class Philosopher extends Thread {
     }
 
     private void putDown() {
-        right.putDown();
-        left.putDown();
+        higher.putDown();
+        lower.putDown();
     }
 
     private void chew() {
@@ -69,8 +80,8 @@ class Philosopher extends Thread {
     }
 
     private void pickUp() {
-        left.pickUp();
-        right.pickUp();
+        lower.pickUp();
+        higher.pickUp();
     }
 
     public void run() {
@@ -82,8 +93,8 @@ class Philosopher extends Thread {
     @Override
     public String toString() {
         return "Philosopher{" +
-                "left=" + left +
-                ", right=" + right +
+                "lower=" + lower +
+                ", higher=" + higher +
                 '}';
     }
 }
