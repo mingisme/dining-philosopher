@@ -35,8 +35,8 @@ class Chopstick {
         lock = new ReentrantLock();
     }
 
-    public void pickUp() {
-        lock.lock();
+    public boolean pickUp() {
+        return lock.tryLock();
     }
 
     public void putDown() {
@@ -54,9 +54,10 @@ class Philosopher extends Thread {
     }
 
     public void eat() {
-        pickUp();
-        chew();
-        putDown();
+        if (pickUp()) {
+            chew();
+            putDown();
+        }
     }
 
     private void putDown() {
@@ -68,9 +69,15 @@ class Philosopher extends Thread {
         System.out.println("Thread: " + Thread.currentThread().getId() + " eat something");
     }
 
-    private void pickUp() {
-        left.pickUp();
-        right.pickUp();
+    private boolean pickUp() {
+        if (!left.pickUp()) {
+            return false;
+        }
+        if (!right.pickUp()) {
+            left.putDown();
+            return false;
+        }
+        return true;
     }
 
     public void run() {
